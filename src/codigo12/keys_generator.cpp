@@ -1,4 +1,4 @@
-#include <Arduino.h>
+#include "Arduino.h"
 #include <uECC.h>
 
 uint8_t message[] = "Mensaje a cifrar y descifrar para Arduino UNO";
@@ -51,6 +51,10 @@ void setup() {
     Serial.println("Clave pública:");
     printHex(publicKey, sizeof(publicKey));
 
+
+    //Salida ejemplo
+    //Clave privada:00D6D6D8DBDEE2E3E3E5E5E5E5E4E2DFDEDCDADA
+    //Clave pública:FBC2217CF9683F5535B4C2F35043A86990719930C15A10D84BC2FA11A3BAC4CC7CC88A8D9E5382F7
     Serial.println("\nFirmando mensaje de prueba...");
     if (!uECC_sign(privateKey, message, sizeof(message), signature, curve)) {
       Serial.println("ERROR al firmar!");

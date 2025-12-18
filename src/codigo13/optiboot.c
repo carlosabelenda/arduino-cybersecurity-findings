@@ -1,3 +1,4 @@
+#include <uECC.h>
 #define FUNC_READ 1
 #define FUNC_WRITE 1
 /**********************************************************/
@@ -374,7 +375,7 @@ typedef union {
  * This saves cycles and program memory, if possible.
  * boot_opt.h pulls in the standard boot.h for the odd target (?)
  */
-#include "boot_opt.h"
+#include <avr/boot.h>
 
 
 // We don't use <avr/wdt.h> as those routines have interrupt overhead we don't need.
@@ -390,6 +391,9 @@ typedef union {
  * stk500.h contains the constant definitions for the stk500v1 comm protocol
  */
 #include "stk500.h"
+
+
+
 
 /* set the UART baud rate defaults */
 #ifndef BAUD_RATE
@@ -707,6 +711,9 @@ void pre_main(void) {
 
 /* main program starts here */
 int main(void) {
+   //CARLOS - Se verifica la firma
+  const struct uECC_Curve_t *curve = uECC_secp160r1();
+
   uint8_t ch;
 
   /*
@@ -1005,7 +1012,7 @@ int main(void) {
       do *bufPtr++ = getch();
       while (--length);
 
-      //CARLOS - Leer la firma (por ejemplo 20 bytes para secp160r1)
+      //CARLOS - Leer la firma 
       uint8_t signature[40];
       for (uint8_t i = 0; i < 40; i++) {
           signature[i] = getch();
@@ -1150,12 +1157,13 @@ int main(void) {
 
     // CARLOS - Se copia aquí la firma pública creada en el paso previo
     uint8_t publicKey[40] = {
-      0x60, 0xD8, 0xCA, 0xC5, 0xEE, 0xE5, 0xA4, 0x3A,
-      0xDC, 0xB8, 0x74, 0xA7, 0x86, 0xCF, 0x81, 0x83,
-      0x04, 0xCC, 0x36, 0x1A, 0x70, 0x34, 0x65, 0x5D,
-      0xD5, 0x1E, 0xBF, 0x8E, 0x0F, 0x0A, 0x76, 0xBD,
-      0x9D, 0x56, 0x2A, 0x5B, 0x4E, 0xA8, 0x0B, 0xEB
+        0xFB, 0xC2, 0x21, 0x7C, 0xF9, 0x68, 0x3F, 0x55,
+        0x35, 0xB4, 0xC2, 0xF3, 0x50, 0x43, 0xA8, 0x69,
+        0x90, 0x71, 0x99, 0x30, 0xC1, 0x5A, 0x10, 0xD8,
+        0x4B, 0xC2, 0xFA, 0x11, 0xA3, 0xBA, 0xC4, 0xCC,
+        0x7C, 0xC8, 0x8A, 0x8D, 0x9E, 0x53, 0x82, 0xF7
     };
+
     //CARLOS - Se verifica la firma
     if (uECC_verify(publicKey, buff.bptr, savelength, signature, curve)){
         //Existe fallo al verificar la firma y no escribe en flash
