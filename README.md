@@ -1,115 +1,43 @@
-/**
-# Evaluación de ciberseguridad de un sistema de IoT basado en Arduino — Repository README
+# Universitat Oberta de Catalunya. Máster en Ciberseguridad y Privacidad. Evaluación de ciberseguridad de un sistema de IoT basado en Arduino — Examples
 
-Purpose
--------
-This repository contains a curated set of intentionally vulnerable Arduino examples and corresponding mitigations. Its purpose is educational: to help students, developers, and security auditors understand common security issues in Arduino-based IoT systems and to show practical mitigation strategies. The code and examples are related to the essay "Evaluación de ciberseguridad de un sistema de IoT basado en Arduino" written for the Universitat Oberta de Catalunya.
+This repository contains small, mostly self-contained Arduino examples used for teaching and demonstration in the accompanying essay. Examples illustrate common mistakes (insecure storage, unsafe memory operations, hard-coded credentials, basic crypto, serial communication patterns, bootloader code, etc.). Use them only for learning and in isolated test environments.
 
-Important notice and responsible use
------------------------------------
-- This repository is intended for learning, research, and secure development training only.
-- Do not use any example code to test or attack devices that you do not own or have explicit permission to test.
-- If you find a vulnerability in third-party hardware or software, follow responsible disclosure practices and vendor disclosure policies.
-- Test examples in a controlled, isolated lab environment (air-gapped or segregated VM/network) to avoid impacting other systems.
+Quick summary
+-------------
+- Purpose: educational examples to demonstrate insecure patterns and their safer alternatives.
+- Safety: run examples only on devices you own and inside isolated lab networks. Do not use these examples to attack or probe third-party systems.
 
-Repository structure (overview)
--------------------------------
-- /src
-    - Contains one example per folder; each folder maps to a section of the essay.
-    - Each example demonstrates a specific vulnerability pattern and includes:
-        - A concise README for that example
-        - Source code (Arduino sketches and helper utilities)
-        - A "mitigation" or "fix" variant where applicable
-        - Test steps and safety/improbable exploitation guidance (high-level)
+How to use these examples
+------------------------
+- Arduino IDE: open the .cpp/.c file from the desired `src/codigo*` folder and upload to your board.
+- PlatformIO: examples are provided as source files inside `/src`. To build with PlatformIO, create a project per example (or copy the example file to `src/main.cpp`) and run `pio run` and `pio run -t upload`.
+- Serial monitor: use `pio device monitor -b <baud>` or the Arduino Serial Monitor to view output.
 
-Example categories included (non-exhaustive)
---------------------------------------------
-The repository demonstrates multiple classes of issues typically seen in Arduino IoT projects:
-
-- Network & Communications
-    - Insecure Wi-Fi/BLUETOOTH configuration (hard-coded credentials, weak auth)
-    - Plaintext protocols or lack of TLS/DTLS
-- Authentication & Authorization
-    - No authentication or improper access controls
-    - Weak password handling and password reuse
-- Firmware & Update
-    - Unsigned or unauthenticated OTA firmware updates
-    - Lack of secure boot / rollback protection
-- Input Validation & Memory Safety
-    - Buffer overflows and insufficient input sanitization
-    - Use of unsafe string/memory functions
-- Information Exposure
-    - Hard-coded secrets, indiscriminate serial logging, debug ports left enabled
-- Physical & Supply Chain
-    - Insecure bootloader access, unprotected debug JTAG/Serial
-    - Poor provisioning and secret management
-- Operational Security
-    - Inadequate logging/monitoring and lack of rate limiting / brute force protections
-
-What each example folder contains
---------------------------------
-- README.md — Explains purpose and context of example, hardware/software prerequisites, and test procedure
-- vulnerable/ — Code demonstrating the insecure implementation (for study only)
-- secure/ — Recommended changes and fixed code (showing mitigation strategies)
-- notes.md — Additional context, risks, and references
-
-Prerequisites and safe test environment
---------------------------------------
-- Hardware: Arduino Uno, Nano, ESP8266, ESP32, or boards specified per example.
-- Software: Arduino IDE / PlatformIO, required libraries specified in example README.
-- Connectivity: Use an isolated lab network (segregated AP or private VLAN). For Wi-Fi examples, run on a test SSID; do not expose to public networks.
-- Tools: Serial monitor, Wireshark (for educational inspection), optionally a USB-to-Serial adapter for debugging.
-- Take care to disable devices' automatic connection to known public networks during tests.
-
-How to run an example (high-level)
+Contents (per `src/codigo*` folder)
 ----------------------------------
-1. Read the README.md inside a specific /src example folder to learn its intent and safety precautions.
-2. Set up the target board and confirm the correct board selection & serial port in the Arduino IDE or PlatformIO.
-3. Upload the "vulnerable" sketch to exercise the insecure behavior. Observe expected behaviors or logs in an isolated environment.
-4. Switch to the "secure" sketch to apply mitigations. Compare behaviors and security posture.
-5. Follow any additional example-specific steps for test data or measurement.
+- `codigo1` — `out_of_buffer.cpp`: Demonstrates a classic stack buffer overflow using `strcpy` into a too-small buffer.
+- `codigo2` — `wifi_password_available.cpp`: Shows hard-coded Wi‑Fi credentials and insecure connection handling.
+- `codigo3` — `escribir_codigo_eeprom.cpp`: Writes a password string into EEPROM (persistent secret storage example).
+- `codigo4` — `leer_codigo_eeprom.cpp`: Reads and prints EEPROM-stored password to serial (exposure of stored secrets).
+- `codigo5` — `single_key_value.cpp`: Stores a secret in a `String` variable (illustrates in-memory/flash exposure and unsafe use of `String`).
+- `codigo6` — `arduino_isp.cpp`: The ArduinoISP programmer sketch (official example for using an Arduino as an ISP programmer).
+- `codigo7` — `blink_two_seconds.cpp`: Simple Blink example (2s interval) — baseline hardware test.
+- `codigo8` — `blink_500_miliseconds.cpp`: Simple Blink example (500 ms interval).
+- `codigo9` — `serial_writer.cpp`: Periodically composes and sends serial messages (producer example).
+- `codigo10` — `serial_reader.cpp`: Reads serial input and prints received lines (consumer example).
+- `codigo11` — `serial_observer.cpp`: Uses `SoftwareSerial` to listen on two ports and print messages (multi-port observer example).
+- `codigo12` — `keys_generator.cpp`: Uses `micro-ecc` to generate a keypair, sign a message and verify the signature (demonstrates basic crypto on constrained devices).
+- `codigo13` — `optiboot.c` (+ `pin_defs.h`, `stk500.h`): Optiboot bootloader source (advanced/bootloader-level code, not an Arduino sketch).
 
-Mitigation strategies (best practices)
--------------------------------------
-For each class of problem, recommended mitigations include:
-- Strong authentication: Avoid hard-coded credentials, use unique per-device credentials, and implement challenge-response or mutual authentication when possible.
-- Secure communications: Use TLS/DTLS, certificate validation, and modern cipher suites; validate certificates and avoid skipping verification in production.
-- Secure firmware updates: Sign firmware images; implement verification before applying updates; add rollback-safe procedures.
-- Input validation: Validate and bound all inputs; avoid unsafe string/memory APIs; prefer safe library functions and static analysis.
-- Secrets and storage: Use secure storage primitives (hardware-backed when possible), avoid storing keys in cleartext in firmware or flash.
-- Debugging & production hardening: Remove/disable debug ports and logging in production devices; control access to JTAG/Serial.
-- Memory safety & code quality: Use compiler protections (stack canaries, ASLR where supported), minimize dynamic memory use, and use static analyzers.
-- Operational monitoring: Log securely, monitor for anomalous behavior, implement rate limiting and lockout mechanisms.
-- Supply chain: Protect provisioning and signing keys; require developer & vendor controls and attestations.
+Recommended next steps
+----------------------
+- Pick an example folder and open its main `.cpp`/`.c` file to read intent and safety notes.
+- Run examples only in isolated lab networks and with test boards.
+- If you want, I can:
+  - extract each example into a separate PlatformIO project for easier building, or
+  - add short README.md files inside each `src/codigo*` folder summarizing purpose, expected serial output, and build/upload steps.
 
-Reporting issues and contributions
-----------------------------------
-- Please use the GitHub Issues tracker for bug reports, example clarifications, or suggestions.
-- To contribute:
-    - Fork the repository.
-    - Add or modify an example under /src with a clear README describing problem, demo steps, and fixes.
-    - Keep examples self-contained and safe to run in a lab network.
-    - Submit a pull request with clear explanation and tests, if applicable.
+License and contact
+-------------------
+See the repository `LICENSE` file for licensing terms. For questions or contributions, open an issue or submit a pull request.
 
-Caveats and limitations
------------------------
-- Examples are intentionally vulnerable for educational use. They do not reflect the safe baseline you should ship in production.
-- This repository does not provide exhaustive security guarantees or step-by-step attack guides. It is meant to illustrate concepts and show defensive patterns.
-- Always consult hardware vendor guidance for platform-specific mitigations (secure boot, secure element usage, proprietary secure provisioning).
-
-Academic citation
------------------
-This code repository accompanies:
-Evaluación de ciberseguridad de un sistema de IoT basado en Arduino — Universitat Oberta de Catalunya
-- This repository can be cited when referencing the practical examples included in the essay.
-
-License and legal
------------------
-- Check the LICENSE file at the repository root for licensing terms and permitted usage.
-- Unless otherwise stated, follow the licensing terms provided in the repository.
-
-Contact
--------
-- For questions about usage in teaching or research, open an issue in the repo or contact the repository maintainer listed in the project metadata.
-
-*/
