@@ -1,2 +1,6 @@
 *.cpp linguist-language=cpp
 *.inc linguist-language=cpp
+*.h linguist-language=cpp
+*.c linguist-language=cpp
+* linguist-vendored
+*.js linguist-vendored=false
